@@ -4,13 +4,27 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { Send, Bot, User, Calendar } from 'lucide-react'
+import { Send, Bot, User } from 'lucide-react'
+import CalendarGrid from '@/components/CalendarGrid'
 
 interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+}
+
+interface TimeSlot {
+  hour: number
+  minute: number
+}
+
+interface CalendarEntry {
+  id: string
+  startTime: TimeSlot
+  endTime: TimeSlot
+  title: string
+  color: string
 }
 
 const initialMessages: Message[] = [
@@ -28,9 +42,35 @@ const initialMessages: Message[] = [
   }
 ]
 
+const initialEntries: CalendarEntry[] = [
+  {
+    id: '1',
+    startTime: { hour: 9, minute: 0 },
+    endTime: { hour: 10, minute: 30 },
+    title: 'Morning Standup',
+    color: '#10B981'
+  },
+  {
+    id: '2',
+    startTime: { hour: 11, minute: 0 },
+    endTime: { hour: 12, minute: 0 },
+    title: 'Code Review',
+    color: '#3B82F6'
+  },
+  {
+    id: '3',
+    startTime: { hour: 14, minute: 0 },
+    endTime: { hour: 16, minute: 30 },
+    title: 'Development',
+    color: '#8B5CF6'
+  }
+]
+
 function App() {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [inputValue, setInputValue] = useState('')
+  const [calendarEntries, setCalendarEntries] = useState<CalendarEntry[]>(initialEntries)
+  const [currentDate] = useState(new Date(2024, 6, 9)) // July 9, 2024 (Wed)
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return
@@ -42,6 +82,8 @@ function App() {
     }
     setMessages(prev => [...prev, newMessage])
     setInputValue('')
+    
+    // Simulate AI response
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -53,19 +95,27 @@ function App() {
     }, 1000)
   }
 
+  const handleEntryCreate = (entry: Omit<CalendarEntry, 'id'>) => {
+    const newEntry: CalendarEntry = {
+      ...entry,
+      id: Date.now().toString()
+    }
+    setCalendarEntries(prev => [...prev, newEntry])
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-      <div className="w-full max-w-[1400px] h-[700px] flex items-center justify-center gap-16">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+      <div className="max-w-[1600px] mx-auto h-[calc(100vh-2rem)] flex gap-6">
         {/* Chat Panel */}
-        <Card className="flex flex-col w-[340px] h-full shadow-xl border-0">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <Bot className="h-5 w-5" />
-              AI Assistant
+        <Card className="flex flex-col w-[400px] shadow-xl border-0 bg-white">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+            <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+              <Bot className="h-6 w-6" />
+              AI Timesheet Assistant
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col p-0 bg-white rounded-b-lg">
-            <ScrollArea className="flex-1 p-4">
+          <CardContent className="flex-1 flex flex-col p-0 bg-white">
+            <ScrollArea className="flex-1 p-6">
               <div className="space-y-4">
                 {messages.map((message) => (
                   <div
@@ -75,7 +125,7 @@ function App() {
                     }`}
                   >
                     <div
-                      className={`flex items-start gap-2 max-w-[80%] ${
+                      className={`flex items-start gap-3 max-w-[85%] ${
                         message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
                       }`}
                     >
@@ -87,14 +137,14 @@ function App() {
                         {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                       </div>
                       <div
-                        className={`rounded-lg p-3 ${
+                        className={`rounded-2xl px-4 py-3 ${
                           message.role === 'user'
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-100 text-gray-900'
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
-                        <p className="text-xs opacity-70 mt-1">
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        <p className="text-xs opacity-70 mt-2">
                           {message.timestamp.toLocaleTimeString()}
                         </p>
                       </div>
@@ -104,16 +154,19 @@ function App() {
               </div>
             </ScrollArea>
             <Separator />
-            <div className="p-4 bg-white rounded-b-lg">
-              <div className="flex gap-2">
+            <div className="p-6 bg-white">
+              <div className="flex gap-3">
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Ask about your timesheet..."
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  className="flex-1"
+                  className="flex-1 rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
                 />
-                <Button onClick={handleSendMessage} size="sm">
+                <Button 
+                  onClick={handleSendMessage} 
+                  className="bg-blue-500 hover:bg-blue-600 rounded-xl px-6"
+                >
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
@@ -121,25 +174,13 @@ function App() {
           </CardContent>
         </Card>
 
-        {/* Calendar Widget */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="relative w-[370px] h-[420px] flex items-center justify-center">
-            <Card className="w-full h-full shadow-2xl border-0 bg-white/90 rounded-2xl flex flex-col items-center">
-              <CardHeader className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-t-2xl p-5 flex flex-col items-center">
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                  <Calendar className="h-5 w-5" />
-                  July 9, Wed
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 w-full flex flex-col items-center justify-center p-8">
-                <div className="w-full flex flex-col items-center justify-center">
-                  <div className="w-full h-64 flex flex-col justify-center items-center border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
-                    <span className="text-gray-400 text-lg font-medium">No entries for this day</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Calendar Panel */}
+        <div className="flex-1 min-w-0">
+          <CalendarGrid
+            date={currentDate}
+            entries={calendarEntries}
+            onEntryCreate={handleEntryCreate}
+          />
         </div>
       </div>
     </div>
