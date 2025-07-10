@@ -42,29 +42,7 @@ const initialMessages: Message[] = [
   }
 ]
 
-const initialEntries: CalendarEntry[] = [
-  {
-    id: '1',
-    startTime: { hour: 9, minute: 0 },
-    endTime: { hour: 10, minute: 30 },
-    title: 'Morning Standup',
-    color: '#10B981'
-  },
-  {
-    id: '2',
-    startTime: { hour: 11, minute: 0 },
-    endTime: { hour: 12, minute: 0 },
-    title: 'Code Review',
-    color: '#3B82F6'
-  },
-  {
-    id: '3',
-    startTime: { hour: 14, minute: 0 },
-    endTime: { hour: 16, minute: 30 },
-    title: 'Development',
-    color: '#8B5CF6'
-  }
-]
+const initialEntries: CalendarEntry[] = []
 
 function App() {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
@@ -175,12 +153,14 @@ function App() {
         </Card>
 
         {/* Calendar Panel */}
-        <div className="flex-1 min-w-0">
-          <CalendarGrid
-            date={currentDate}
-            entries={calendarEntries}
-            onEntryCreate={handleEntryCreate}
-          />
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="w-full max-w-[520px] h-[600px]">
+            <CalendarGrid
+              date={currentDate}
+              entries={calendarEntries}
+              onEntryCreate={handleEntryCreate}
+            />
+          </div>
         </div>
       </div>
     </div>
